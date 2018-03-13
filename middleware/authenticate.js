@@ -2,7 +2,7 @@ const {User}=require('./../model/User');
 
 var authenticate= (req,res,next)=>{
     var token =req.header('x-auth');
-  
+  console.log('tets');
     User.findByToken(token).then((user)=>{
      if(!user){
       return Promise.reject();
