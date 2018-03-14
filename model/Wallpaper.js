@@ -12,11 +12,9 @@ var Wallpaper=mongoose.model('Wallpaper',{
     likes:{
         type:Number,
         required:true,
-        default:'0'
     },
     timestamp:{
-    type:Number,
-    default:null,
+    type:String,
     required:true
     },
     creator:{

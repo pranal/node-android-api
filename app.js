@@ -11,6 +11,7 @@ var {authenticate}=require('./middleware/authenticate');
 const {User}=require('./model/User');
 const{Wallpaper}=require('./model/Wallpaper');
 const{mongoose}=require('./db/mongoose');
+const{Favorite}=require('./model/Favorite');
 
 var app=express();
 const port = process.env.PORT||3000;
@@ -31,6 +32,43 @@ app.post('/wallpapers',(req, res) => {
 });
 
 
+
+app.post('/favorites',(req, res) => {
+  var body=_.pick(req.body,['userid','wallpaperid','timestamp']);
+  var favorite= new Favorite(body);
+
+  favorite.save().then((doc) => {
+    res.send(doc);
+  }, (e) => {
+    res.status(400).send(e);
+  });
+});
+
+app.get('/favorites',authenticate,(req,res)=>{
+  
+  if (!ObjectID.isValid(req.user._id)) {
+    return res.status(404).send();
+  }
+  
+  var array1=[];
+  Favorite.find({
+  userid:req.user._id
+
+  }).then((favorites)=>{
+    favorites.forEach(function(favorite){
+     array1.push(favorite.wallpaperid);
+     
+    })
+    Wallpaper.find({
+      _id:array1
+    })
+    .then((wallpapers)=>{
+     res.send(wallpapers);
+    })
+ },(e)=>{
+   res.status(400).send(e);
+ })
+});
 
 app.get('/wallpapers',(req, res) => {
   Wallpaper.find().sort('-likes').then((wallpapers) => {
