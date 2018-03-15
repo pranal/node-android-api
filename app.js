@@ -78,6 +78,16 @@ app.get('/wallpapers',(req, res) => {
   });
 });
 
+app.get('/recent',(req, res) => {
+  Wallpaper.find().sort('-timestamp').then((wallpapers) => {
+    res.send({wallpapers});
+  }, (e) => {
+    res.status(400).send(e);
+  });
+});
+
+
+
 
 app.post('/signup', (req, res) => {
     
