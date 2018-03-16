@@ -5,7 +5,8 @@ const bcrypt=require('bcrypt');
 const validator=require('validator');
 
 
-var UserSchema=new mongoose.Schema({
+
+var CreatorSchema=new mongoose.Schema({
 
     email:{
         type: String,
@@ -25,6 +26,7 @@ var UserSchema=new mongoose.Schema({
         minlength: 6
                 },
     
+    
      tokens: [{
         access: {
          type: String,
@@ -40,8 +42,8 @@ var UserSchema=new mongoose.Schema({
         
 });
 
-
-UserSchema.methods.generateAuthToken = function () {
+CreatorSchema.methods.generateAuthToken = function () {
+   
     var user = this;
     var access = 'auth';
     var token = jwt.sign({_id: user._id.toHexString(), access},process.env.JWT_SECRET).toString();
@@ -56,64 +58,59 @@ UserSchema.methods.generateAuthToken = function () {
     });
   };
 
-  UserSchema.methods.removeToken= function(token){
-    var user= this;
+  CreatorSchema.statics.findByCredentials=function (email,password){
+    
+      
+    var Creator=this;
+    
    
-    return  user.update({
-      $pull:{
-        tokens:{token}
-        }
-   
-    });
-    }
+    return Creator.findOne({email}).then((creator)=>{
+      if(!creator){
 
-  UserSchema.statics.findByCredentials=function (email,password){
-    var User=this;
-   
-    return User.findOne({email}).then((user)=>{
-      if(!user){
       return Promise.reject();
       }
-   
+ 
       return new Promise((resolve,reject)=>{
-       bcrypt.compare(password,user.password,(err,res)=>{
+       bcrypt.compare(password,creator.password,(err,res)=>{
        if(res){
-         resolve(user);
+         resolve(creator);
        }else{
+
          reject();
        }
        });
       });
     });
    };
-   
-UserSchema.statics.findByToken= function(token){
-    var User = this;
+   CreatorSchema.statics.findByToken= function(token){
+    var Creator = this;
     var decoded;
   
   try{
     decoded=jwt.verify(token,process.env.JWT_SECRET);
+    
   }
   catch(e){
-  
+     console.log('test1');
     return Promise.reject();
   
   }
-   return User.findOne({
+   return Creator.findOne({
      '_id':decoded._id,
      'tokens.token':token,
      'tokens.access':'auth'
   });
   };
 
-  UserSchema.pre('save',function(next){
-    var user=this;
+
+   CreatorSchema.pre('save',function(next){
+    var creator=this;
  
-    if (user.isModified('password'))
+    if (creator.isModified('password'))
     {
       bcrypt.genSalt(10,(err,salt)=>{
-        bcrypt.hash(user.password,salt,(err,hash)=>{
-            user.password= hash;
+        bcrypt.hash(creator.password,salt,(err,hash)=>{
+            creator.password= hash;
             next();
         });
       });
@@ -123,7 +120,6 @@ UserSchema.statics.findByToken= function(token){
     }
    });
 
-  var User=mongoose.model('User',UserSchema);
+var Creator=mongoose.model('Creator',CreatorSchema);
 
-module.exports={User}
-
+module.exports={Creator}
