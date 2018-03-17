@@ -117,7 +117,41 @@ app.get('/recent',(req, res) => {
 });
 
 app.post('/send', authenticatec, (req, res) => {
+  console.log(req);
+  let part = req.files.file;
+  let writeStream = gfs.createWriteStream({
+      filename: 'img_' + part.name,
+      mode: 'w',
+      content_type: part.mimetype
+  });
 
+  writeStream.on('close', (file) => {
+    // checking for file
+    if(!file) {
+      res.status(400).send('No file received');
+    }
+  });
+  // using callbacks is important !
+  // writeStream should end the operation once all data is written to the DB 
+  writeStream.write(part.data, () => {
+    writeStream.end();
+  }); 
+ 
+ var filename= 'img_' + req.files.file.name;
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+  /////////
   if (!ObjectID.isValid(req.creator._id)) {
     return res.status(404).send();
   }
@@ -140,7 +174,7 @@ app.post('/send', authenticatec, (req, res) => {
      port: 587,
      secure: false, // true for 465, false for other ports
      auth: {
-         user: 'pranalmyntra3@gmail.com', // generated ethereal user
+         user: 'pranalmyntra2@gmail.com', // generated ethereal user
          pass: 'Myntrarocks'// generated ethereal password
      },
      tls:{
@@ -151,7 +185,7 @@ app.post('/send', authenticatec, (req, res) => {
 
  // setup email data with unicode symbols
  let mailOptions = {
-     from: '"Wall Admin" <pranalmyntra3@gmail.com>', // sender address
+     from: '"Wall Admin" <pranalmyntra2@gmail.com>', // sender address
      to: 'sarveshpalav@gmail.com', // list of receivers
      subject: `Mail from creator ${creatorname}`, // Subject line
      text: 'Hello world?', // plain text body
