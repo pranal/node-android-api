@@ -25,6 +25,37 @@ var CreatorSchema=new mongoose.Schema({
         require: true,
         minlength: 6
                 },
+                
+    name:{
+      type:String,
+      require:true,
+      trim:true
+    },
+
+    dpurl:{
+      type:String,
+      trim:true,
+      required:true,
+       },
+
+    verified:{
+    type:Boolean,
+    default:false
+       },
+
+   instaurl:{
+    type:String,
+    trim:true,
+    required:true,
+      },
+
+  websiteurl:{
+    type:String,
+    trim:true,
+    required:true,
+         },
+
+
     
     
      tokens: [{

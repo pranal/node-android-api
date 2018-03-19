@@ -143,15 +143,8 @@ app.post('/send', authenticatec, (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-  /////////
+//The node mailer part
+/////////
   if (!ObjectID.isValid(req.creator._id)) {
     return res.status(404).send();
   }
@@ -186,7 +179,7 @@ app.post('/send', authenticatec, (req, res) => {
  // setup email data with unicode symbols
  let mailOptions = {
      from: '"Wall Admin" <pranalmyntra2@gmail.com>', // sender address
-     to: 'sarveshpalav@gmail.com', // list of receivers
+     to: 'pranaldesai@gmail.com', // list of receivers
      subject: `Mail from creator ${creatorname}`, // Subject line
      text: 'Hello world?', // plain text body
      html: output // html body
@@ -217,6 +210,12 @@ app.post('/send', authenticatec, (req, res) => {
 });
 
 
+
+////////////////////////
+//Creator file upload
+
+
+
 app.post('/signup', (req, res) => {
     
 var body=_.pick(req.body,['email','password']);
@@ -235,7 +234,7 @@ user.save().then(() => {
 
 app.post('/csignup', (req, res) => {
     
-  var body=_.pick(req.body,['email','password']);
+  var body=_.pick(req.body,['email','password','name','dpurl','verified','instaurl','websiteurl']);
   console.log(body);
   var creator= new Creator(body);
   
@@ -262,6 +261,75 @@ app.post('/csignup', (req, res) => {
     });
   });  
 
+  app.post('/cupload',authenticatec,(req, res) => {
+    var verified=req.creator.verified;
+    
+    if (verified==false) {
+      return res.status(404).send();
+    }
+
+    console.log(req);
+        let part = req.files.file;
+        let writeStream = gfs.createWriteStream({
+            filename: 'img_' + part.name,
+            mode: 'w',
+            content_type: part.mimetype
+        });
+
+        writeStream.on('close', (file) => {
+          // checking for file
+          if(!file) {
+            res.status(400).send('No file received');
+          }
+            return res.status(200).send({
+                message: 'Success',
+                file: file
+            });
+        });
+        // using callbacks is important !
+        // writeStream should end the operation once all data is written to the DB 
+        writeStream.write(part.data, () => {
+          writeStream.end();
+        });  
+
+    
+    });
+
+    app.get('/cupload/:imgname', (req, res) => {
+      let imgname = req.params.imgname;
+        gfs.files.find({
+            filename: imgname
+        }).toArray((err, files) => {
+
+            if (files.length === 0) {
+                return res.status(404).send({
+                    message: 'File not found'
+                });
+            }
+            let data = [];
+            let readstream = gfs.createReadStream({
+                filename: files[0].filename
+            });
+             
+            readstream.on('data', (chunk) => {
+                data.push(chunk);
+            });
+
+            readstream.on('end', () => {
+                data = Buffer.concat(data);
+                let img = 'data:image/png;base64,' + Buffer(data).toString('base64');
+                res.end(img);
+            });
+
+            readstream.on('error', (err) => {
+              // if theres an error, respond with a status of 500
+              // responds should be sent, otherwise the users will be kept waiting
+              // until Connection Time out
+                res.status(500).send(err);
+                console.log('An error occurred!', err);
+            });
+        });
+    });
 
 app.post('/login',(req,res)=>{
     var body = _.pick(req.body, ['email', 'password']);
