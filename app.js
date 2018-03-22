@@ -48,13 +48,22 @@ conn.once("open", () => {
 
 
 
-app.post('/wallpapers',(req, res) => {
-  var body=_.pick(req.body,['title','likes','timestamp','creator','url']);
-  var wallpaper= new Wallpaper(body);
+app.post('/wallpapers',authenticatec,(req, res) => {
+  
 
-  wallpaper.save().then((doc) => {
-    res.send(doc);
-  }, (e) => {
+
+var wallpaper = new Wallpaper({
+  title: req.body.title,
+  likes:req.body.likes,
+  timestamp:req.body.timestamp,
+  url:req.body.url,
+});
+
+ wallpaper.save().then(() => {
+    return wallpaper.generateCreator(req);
+  }).then((wallpaper)=>{
+    res.send(wallpaper)
+  }).catch((e) => {
     res.status(400).send(e);
   });
 });
@@ -101,8 +110,36 @@ app.get('/favorites',authenticate,(req,res)=>{
 
 
 app.get('/wallpapers',(req, res) => {
+  var array1=[];
+  var counter=0
   Wallpaper.find().sort('-likes').then((wallpapers) => {
-    res.send({wallpapers});
+  
+    wallpapers.forEach(function(wallpaper){
+     
+     console.log(wallpaper);
+     console.log(wallpaper.creator[0]._creator);
+     Creator.findOne({
+     _id:wallpaper.creator[0]._creator
+     }).then((creator)=>{
+       wallpaper.creator[0].creatorname=creator.name;
+       wallpaper.creator[0].creatordpurl=creator.dpurl;
+       console.log(wallpaper);
+     // console.log(wallpaper);
+      array1.push(wallpaper);
+      counter++;
+      console.log(counter);
+     // console.log(array1)
+      // console.log(wallpaper.creator[0]);
+      console.log(wallpapers.length);
+      if(wallpapers.length==counter){
+        res.send({array1});
+      }
+     })
+     });
+     console.log("test"+array1);
+    
+                      
+    
   }, (e) => {
     res.status(400).send(e);
   });

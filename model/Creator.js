@@ -151,6 +151,12 @@ CreatorSchema.methods.generateAuthToken = function () {
     }
    });
 
+   CreatorSchema.methods.toJSON = function () {
+    var creator = this;
+    var creatorObject = creator.toObject();
+  
+    return _.pick(creatorObject, ['_id']);
+  };
 var Creator=mongoose.model('Creator',CreatorSchema);
 
 module.exports={Creator}
