@@ -110,11 +110,10 @@ app.get('/favorites',authenticate,(req,res)=>{
 
 
 app.get('/wallpapers',(req, res) => {
-  var array1=[];
+  var featured=[];
   var counter=0
   Wallpaper.find().sort('-likes').then((wallpapers) => {
-  
-    wallpapers.forEach(function(wallpaper){
+   wallpapers.forEach(function(wallpaper){
      
      console.log(wallpaper);
      console.log(wallpaper.creator[0]._creator);
@@ -125,32 +124,47 @@ app.get('/wallpapers',(req, res) => {
        wallpaper.creator[0].creatordpurl=creator.dpurl;
        console.log(wallpaper);
      // console.log(wallpaper);
-      array1.push(wallpaper);
+      featured.push(wallpaper);
       counter++;
       console.log(counter);
      // console.log(array1)
       // console.log(wallpaper.creator[0]);
       console.log(wallpapers.length);
       if(wallpapers.length==counter){
-        res.send({array1});
+        res.send({featured});
       }
      })
      });
      console.log("test"+array1);
     
-                      
-    
-  }, (e) => {
+   }, (e) => {
     res.status(400).send(e);
   });
 });
 
-app.get('/recent',(req, res) => {
-  Wallpaper.find().sort('-timestamp').then((wallpapers) => {
-    res.send({wallpapers});
-  }, (e) => {
-    res.status(400).send(e);
+app.get('/recent',(req,res)=>{
+
+var recent=[];
+var counter=0;
+Wallpaper.find().sort('timestamp').then((wallpapers)=>{
+  wallpapers.forEach(function(wallpaper){
+    Creator.findOne({
+      _id:wallpaper.creator[0]._creator
+    }).then((creator)=>{
+      wallpaper.creator[0].creatorname=creator.name;
+      wallpaper.creator[0].creatordpurl=creator.dpurl;
+      console.log(wallpaper);
+      recent.push(wallpaper);
+      counter++;
+      if(wallpapers.length==counter){
+        res.send({recent});
+      }
+    })
   });
+},(e)=>{
+  res.status(400).send(e);
+});
+
 });
 
 app.post('/send', authenticatec, (req, res) => {
